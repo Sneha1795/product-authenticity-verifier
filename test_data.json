@@ -1,0 +1,29 @@
+[
+  {
+    "product_id": "P001",
+    "title": "Smartphone XYZ - Like Original 128GB",
+    "description": "A premium phone with great features. Almost original quality.",
+    "specs": {
+      "Storage": "64GB",
+      "Camera": "12MP"
+    },
+    "reviews": [
+      "Excellent product!",
+      "Excellent product!",
+      "Good value for money."
+    ]
+  },
+  {
+    "product_id": "P002",
+    "title": "Wireless Headphones ABC",
+    "description": "Top quality sound, durable and stylish.",
+    "specs": {
+      "Battery Life": "20 hours",
+      "Bluetooth": "5.0"
+    },
+    "reviews": [
+      "Amazing sound!",
+      "Very comfortable."
+    ]
+  }
+]
