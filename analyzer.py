@@ -1,103 +1,137 @@
-import json
 import re
-from collections import Counter
-import pandas as pd
 import nltk
+import pandas as pd
+from nltk.tokenize import word_tokenize
+from rapidfuzz import fuzz, process
 
-nltk.download('punkt')
+nltk.download('punkt', quiet=True)
 
+# --- Keyword Rules ---
 RED_FLAG_KEYWORDS = [
-    'almost original', 'like original', 'cheap quality', 'replica', 'fake', 'copy',
-    'not genuine', 'look alike', 'highly recommended', 'best price', 'discount', '100% original'
+    "replica", "copy", "fake", "authentic?", "genuine?", "looks like", "not original", "1st copy",
+    "dupe", "knockoff", "mirror of", "inspired by", "just like original", "top copy", "same as original", "clone version"
 ]
 
-def load_data(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+# --- Valid Spec Keys ---
+KNOWN_KEYS = ['storage', 'camera', 'brand', 'price', 'battery', 'bluetooth', 'color', 'size', 'power', 'port']
 
-def check_spec_mismatch(product):
-    """
-    Check if specs mentioned in title/description mismatch with specs dict.
-    Very basic example: look for numbers in title and compare with specs values.
-    """
-    issues = []
+# --- Normalize Spec Keys with Fuzzy Matching ---
+def normalize_keys(specs):
+    corrected = {}
+    warnings = []
+    for key, value in specs.items():
+        key_lower = key.lower().strip()
+        best_match, score, _ = process.extractOne(key_lower, KNOWN_KEYS)
+        if score >= 80:
+            corrected[best_match] = value
+        else:
+            corrected[key_lower] = value  # keep original
+            warnings.append((f"Unknown spec key: '{key}'", "warning"))
+    return corrected, warnings
 
-    title = product.get('title', '').lower()
-    specs = product.get('specs', {})
+# --- Normalize Helpers ---
+def normalize_text(text):
+    return text.lower().strip()
 
-    # Extracting numbers with units from title
-    title_numbers = re.findall(r'(\d+\s?(gb|mp|inch|inch|mah|hours))', title)
+def normalize_spec_value(val):
+    return normalize_text(val).replace(" ", "").replace("gb", "").replace("mp", "").replace("mah", "")
 
-    # Flatten to just numbers with units
-    title_specs = [t[0].replace(' ', '') for t in title_numbers]
+# --- Detect Red Flags ---
+def contains_red_flags(text):
+    flags = []
+    text = text.lower()
+    for keyword in RED_FLAG_KEYWORDS:
+        if keyword in text:
+            flags.append((keyword, "minor"))
+        else:
+            for word in word_tokenize(text):
+                similarity = fuzz.partial_ratio(word.lower(), keyword.lower())
+                if similarity >= 85:
+                    flags.append((f"[fuzzy match: {keyword}]", "minor"))
+                    break
+    return flags
 
-    for key, val in specs.items():
-        val_str = str(val).lower().replace(' ', '')
-        if val_str not in title_specs:
-            # Spec value missing in title specs? Could be mismatch or missing mention
-            if title_specs:
-                issues.append(f"Spec mismatch for {key}: '{val}' not found in title")
-    return issues
+# --- Check Spec Issues ---
+def check_spec_mismatches(specs, description=""):
+    mismatches = []
+    desc = normalize_text(description)
 
-def check_red_flag_keywords(product):
-    issues = []
-    text = (product.get('title', '') + ' ' + product.get('description', '')).lower()
+    brand = normalize_text(specs.get('brand', ''))
+    price = specs.get('price', '')
+    storage = normalize_text(specs.get('storage', ''))
 
-    for kw in RED_FLAG_KEYWORDS:
-        if kw in text:
-            issues.append(f"Red-flag keyword detected: '{kw}'")
+    if brand in ['unknown', 'na', 'not mentioned', '']:
+        mismatches.append(("Brand not specified", "critical"))
 
-    return issues
+    if price:
+        try:
+            price_value = float(price)
+            if price_value < 100:
+                mismatches.append(("Price suspiciously low", "critical"))
+        except:
+            mismatches.append(("Price not numeric", "warning"))
 
-def check_review_patterns(product):
-    issues = []
-    reviews = product.get('reviews', [])
+    if "128gb" in desc and "64" in storage:
+        mismatches.append(("Storage mismatch with description", "warning"))
 
-    # Count repeated reviews
-    review_counts = Counter(reviews)
-    repeated = [r for r, count in review_counts.items() if count > 1]
+    if storage:
+        try:
+            storage_num = int("".join([c for c in storage if c.isdigit()]))
+            if storage_num > 512:
+                mismatches.append(("Storage value unusually high", "warning"))
+        except:
+            mismatches.append(("Storage format invalid", "warning"))
 
-    if repeated:
-        issues.append(f"Repeated reviews detected: {len(repeated)} repeated review(s)")
+    return mismatches
 
-    return issues
+# --- Analyze Reviews ---
+def analyze_reviews(reviews):
+    red_flags = []
+    repeated_lines = set()
+    seen = set()
 
-def analyze_product(product):
-    issues = []
-    issues.extend(check_spec_mismatch(product))
-    issues.extend(check_red_flag_keywords(product))
-    issues.extend(check_review_patterns(product))
+    for review in reviews:
+        review = review.strip()
+        if review in seen:
+            repeated_lines.add(review)
+        seen.add(review)
+        red_flags.extend(contains_red_flags(review))
 
-    return issues
+    return [(f"Repeated review: {r}", "warning") for r in repeated_lines], red_flags
 
-def main(file_path):
-    products = load_data(file_path)
-    flagged_products = []
+# --- Final Main Analyzer ---
+def analyze_product(data):
+    raw_specs = data.get("specs", {})
+    specs, unknown_key_warnings = normalize_keys(raw_specs)
 
-    for product in products:
-        issues = analyze_product(product)
-        if issues:
-            flagged_products.append({
-                'product_id': product.get('product_id', 'N/A'),
-                'title': product.get('title', ''),
-                'issues': issues
-            })
+    description = data.get("description", "")
+    reviews = data.get("reviews", [])
 
-    if flagged_products:
-        print("\n Flagged Products:")
-        for p in flagged_products:
-            print(f"\nProduct ID: {p['product_id']}")
-            print(f"Title: {p['title']}")
-            for issue in p['issues']:
-                print(f" - {issue}")
-    else:
-        print("No issues detected in any products.")
+    spec_flags = check_spec_mismatches(specs, description)
+    repeated_reviews, review_flags = analyze_reviews(reviews)
 
-if __name__ == '__main__':
-    import sys
-    if len(sys.argv) != 2:
-        print("Usage: python analyzer.py <test_data.json>")
-        sys.exit(1)
-    main(sys.argv[1])
+    all_issues = spec_flags + repeated_reviews + review_flags + unknown_key_warnings
+
+    score = 100
+    for _, severity in all_issues:
+        if severity == "critical":
+            score -= 15
+        elif severity == "warning":
+            score -= 10
+        elif severity == "minor":
+            score -= 5
+
+    score = max(0, min(100, score))
+
+    explanations = []
+    for message, severity in all_issues:
+        prefix = "❌" if severity == "critical" else "⚠️" if severity == "warning" else "🟡"
+        explanations.append(f"{prefix} {message} ({severity.capitalize()})")
+
+    return {
+        "confidence_score": score,
+        "explanations": explanations
+    }
+
 
 

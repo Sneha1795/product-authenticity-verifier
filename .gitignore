@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+nltk_data/
+fix_nltk.py
+fix_nltk_path.py
+analysis_report.csv

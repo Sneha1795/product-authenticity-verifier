@@ -2,28 +2,114 @@
   {
     "product_id": "P001",
     "title": "Smartphone XYZ - Like Original 128GB",
-    "description": "A premium phone with great features. Almost original quality.",
+    "description": "A premium phone with great features. Almost original quality and best price. Hurry before it’s gone!",
     "specs": {
       "Storage": "64GB",
-      "Camera": "12MP"
+      "Camera": "12MP",
+      "Battery": "4000mAh"
     },
     "reviews": [
       "Excellent product!",
       "Excellent product!",
-      "Good value for money."
+      "Looks original but feels cheap.",
+      "Good value for money.",
+      "Amazing phone, highly recommended!"
     ]
   },
   {
     "product_id": "P002",
-    "title": "Wireless Headphones ABC",
-    "description": "Top quality sound, durable and stylish.",
+    "title": "Wireless Headphones ABC with Bluetooth 5.0",
+    "description": "Top quality sound, durable and stylish headphones. Best price guaranteed. 100% original.",
     "specs": {
       "Battery Life": "20 hours",
-      "Bluetooth": "5.0"
+      "Bluetooth": "5.0",
+      "Color": "Black"
     },
     "reviews": [
       "Amazing sound!",
-      "Very comfortable."
+      "Very comfortable.",
+      "Best purchase I've made!",
+      "Best purchase I've made!",
+      "Best purchase I've made!"
+    ]
+  },
+  {
+    "product_id": "P003",
+    "title": "Replica Smartwatch Pro 42mm",
+    "description": "Look alike of the popular Smartwatch Pro. Replica version with almost all features.",
+    "specs": {
+      "Size": "42mm",
+      "Battery": "2 days",
+      "Water Resistant": "Yes"
+    },
+    "reviews": [
+      "Looks exactly like the original!",
+      "Great deal for the price.",
+      "Not genuine but works fine.",
+      "Super stylish!",
+      "Super stylish!"
+    ]
+  },
+  {
+    "product_id": "P004",
+    "title": "USB-C Fast Charger - 20W",
+    "description": "Genuine USB-C charger with fast charging support. Compatible with latest devices.",
+    "specs": {
+      "Power": "20W",
+      "Port": "USB-C",
+      "Color": "White"
+    },
+    "reviews": [
+      "Charges super fast!",
+      "Working great so far.",
+      "Good build quality.",
+      "Would buy again."
+    ]
+  },
+  {
+    "product_id": "P005",
+    "title": "Luxury Watch Model Z Inspired Design",
+    "description": "Inspired by top luxury brands. Affordable and stylish.",
+    "specs": {
+      "Size": "45mm",
+      "Battery": "2 days",
+      "Water Resistant": "Yes"
+    },
+    "reviews": [
+      "Amazing value for money.",
+      "Looks just like the original.",
+      "Inspired design is on point!"
+    ]
+  },
+  {
+    "product_id": "P006",
+    "title": "Smartphone Alpha 128GB",
+    "description": "Latest flagship. 128GB internal memory, high-speed processor.",
+    "specs": {
+      "Storage": "64GB",
+      "Camera": "50MP",
+      "Brand": "AlphaTech"
+    },
+    "reviews": [
+      "Fast delivery",
+      "Not as described. Storage only 64GB.",
+      "Looks different from photos."
+    ]
+  },
+  {
+    "product_id": "P007",
+    "title": "Original Wireless Earbuds Pro",
+    "description": "High fidelity sound, fast charging, premium build.",
+    "specs": {
+      "Battery Life": "30 hours",
+      "Bluetooth": "5.2",
+      "Brand": "SonicWave"
+    },
+    "reviews": [
+      "Battery lasts as advertised.",
+      "Great sound, very clear.",
+      "No problems so far."
     ]
   }
 ]
+
